@@ -15,7 +15,14 @@
 
 
 
+-------------
 
+<a name="workflow-prompt-chaining"></a>
+## 2. Workflow: Prompt chaining
+
+![alt text](<assets/Screenshot 2025-02-21 144449.png>)
+
+### 2.1 Chain Agents Workflow (No Framework)
 
 ```python
 def chain_workflow(query: str, steps: list[str]) -> str:
@@ -135,15 +142,15 @@ Based on the provided data, here is the sales analysis table rearranged in ascen
 
 ```
 
+### 2.2 Chain Agents Workflow (AutoGen)
+
+
+
+
+
+
+
 -------------
-
-<a name="workflow-prompt-chaining"></a>
-## 2. Workflow: Prompt chaining
-
--------------
-
-
-
 
 ## References
 1. https://docs.ag2.ai/docs/Home
