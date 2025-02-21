@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "autonomous-multi-agent-framework-using-autogen"
+version = "0.1.0"
+description = ""
+authors = ["yudhisteer <yudhisteer.chin@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+ag2 = "^0.7.5"
+python-dotenv = "^1.0.1"
+black = "^25.1.0"
+isort = "^6.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
