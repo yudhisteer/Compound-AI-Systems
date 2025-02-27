@@ -61,8 +61,10 @@ data_processing_steps = [
     | NY    | 0.16K     |
     | LA    | 0.046K    |"""
     ]    
+```
 
-    report = """Q1 Sales Report:
+```python
+report = """Q1 Sales Report:
     NY store sold 15600 units
     LA store sold 23400 units
     Miami store sold 8900 units
