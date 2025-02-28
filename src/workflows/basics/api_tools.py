@@ -4,7 +4,7 @@ import json
 import requests
 from pydantic import BaseModel, Field
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
-from src.utils.utils import get_chat_completion_tools, get_chat_completion_parse
+from src.utils.utils import call_tools, parse_tools_response
 
 # https://platform.openai.com/docs/assistants/tools/function-calling
 # Based on https://github.com/daveebbelaar/ai-cookbook/blob/main/patterns/workflows/1-introduction/3-tools.py
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 
     #------------------ Model knows to call the function -------------------#
-    response = get_chat_completion_tools(system_prompt, user_prompt, tools=tools)
+    response = call_tools(messages, tools)
     print("Response:", response, "\n") # model provides the tool call id and the function name and the longitude and latitude args
 
     # print(response.model_dump())
@@ -91,6 +91,8 @@ if __name__ == "__main__":
         function_name = tool_call.function.name # get_weather
         # Get the arguments
         function_args = json.loads(tool_call.function.arguments) #{'latitude': 47.6062, 'longitude': -122.3321}
+        # Add the tool call to the messages
+        messages.append(response.choices[0].message)
         # Execute the function
         result = call_function(function_name, function_args) # {'time': '2025-02-28T20:00', 'interval': 900, 'temperature_2m': 10.0, 'wind_speed_10m': 3.1}
         # Add the result to the messages
@@ -99,6 +101,7 @@ if __name__ == "__main__":
         )
     print("messages:", messages, "\n")
 
-    completion_2 = get_chat_completion_parse(system_prompt, user_prompt, WeatherResponse)
-    print("Temperature:", completion_2.temperature)
-    print("Response:", completion_2.response)
+    #------------------ We now parse the result ------------------#
+    result = parse_tools_response(messages, tools, WeatherResponse)
+    print("Temperature:", result.temperature)
+    print("Response:", result.response)

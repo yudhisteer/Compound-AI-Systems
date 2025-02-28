@@ -1,0 +1,19 @@
+{
+    "records": [
+        {
+            "id": 1,
+            "question": "How do I reset my password?",
+            "answer": "You can reset your password by clicking the 'Forgot Password' link on the login page. We'll send a password reset link to your registered email address which will be valid for 24 hours."
+        },
+        {
+            "id": 2,
+            "question": "What are your business hours?",
+            "answer": "Our physical stores are open Monday through Friday from 9am to 8pm, Saturday from 10am to 6pm, and Sunday from 12pm to 5pm. Our online customer service is available 24/7."
+        },
+        {
+            "id": 3,
+            "question": "Do you offer a student discount?",
+            "answer": "Yes, we offer a 15% discount for students with a valid student ID. This discount can be applied both in-store and online by verifying through our student verification partner."
+        }
+    ]
+}
