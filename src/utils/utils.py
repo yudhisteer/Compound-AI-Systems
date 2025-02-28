@@ -11,9 +11,12 @@ if not api_key:
     raise ValueError("OpenAI API key not found in environment variables")
 client = OpenAI(api_key=api_key)
 
-
-def get_chat_completion(
-    prompt: str, model: str = "gpt-4o-mini", temperature: float = 0
+def get_chat_completion_tools(
+    system_prompt: str,
+    user_prompt: str,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0,
+    tools: list[dict] = None,
 ) -> str:
     """
     Get a chat completion from OpenAI.
@@ -29,7 +32,43 @@ def get_chat_completion(
     try:
         response = client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+            tools=tools,
+        )
+        return response
+
+    except Exception as e:
+        raise Exception(f"Error getting chat completion: {str(e)}")
+
+
+def get_chat_completion(
+    system_prompt: str,
+    user_prompt: str,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0,
+) -> str:
+    """
+    Get a chat completion from OpenAI.
+
+    Args:
+        prompt: The text prompt to send
+        model: The model to use (default: gpt-4)
+        temperature: Controls randomness (0-1, default: 0)
+
+    Returns:
+        The completion text
+    """
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
             temperature=temperature,
         )
         return response.choices[0].message.content
