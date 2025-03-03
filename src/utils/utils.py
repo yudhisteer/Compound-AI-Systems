@@ -1,5 +1,6 @@
+import json
 import os
-import json 
+
 from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
@@ -11,7 +12,6 @@ api_key = os.environ.get("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("OpenAI API key not found in environment variables")
 client = OpenAI(api_key=api_key)
-
 
 
 def call_tool(
@@ -93,8 +93,6 @@ def get_chat_completion(
         raise Exception(f"Error getting chat completion: {str(e)}")
 
 
-
-
 def chain_workflow(query: str, steps: list[str], debug: bool = False) -> str:
     """
     Execute a chain of workflows.
@@ -109,29 +107,39 @@ def chain_workflow(query: str, steps: list[str], debug: bool = False) -> str:
     return input_query
 
 
-def execute_tool(response: ChatCompletion, messages: list[dict], function_registry: dict):
+def execute_tool(
+    response: ChatCompletion, messages: list[dict], function_registry: dict
+):
     """
     Execute tool calls from an OpenAI API response and append results to messages.
-    
+
     Args:
         response: The OpenAI API response containing tool calls
         messages: List of messages to append results to
-        
+
     Returns:
         Updated messages list with tool call results
     """
     for tool_call in response.choices[0].message.tool_calls:
         # Get the function name
-        function_name = tool_call.function.name # get_weather
-        # Get the arguments  
-        function_args = json.loads(tool_call.function.arguments) #{'latitude': 47.6062, 'longitude': -122.3321}
+        function_name = tool_call.function.name  # get_weather
+        # Get the arguments
+        function_args = json.loads(
+            tool_call.function.arguments
+        )  # {'latitude': 47.6062, 'longitude': -122.3321}
         # Add the tool call to the messages
         messages.append(response.choices[0].message)
         # Execute the function
-        result = call_function(function_name, function_args, function_registry) # {'time': '2025-02-28T20:00', 'interval': 900, 'temperature_2m': 10.0, 'wind_speed_10m': 3.1}
+        result = call_function(
+            function_name, function_args, function_registry
+        )  # {'time': '2025-02-28T20:00', 'interval': 900, 'temperature_2m': 10.0, 'wind_speed_10m': 3.1}
         # Add the result to the messages
         messages.append(
-            {"role": "tool", "tool_call_id": tool_call.id, "content": json.dumps(result)}
+            {
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": json.dumps(result),
+            }
         )
     return messages
 
