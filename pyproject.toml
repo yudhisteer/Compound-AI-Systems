@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "autonomous-multi-agent-framework-using-autogen"
+name = "compound-ai-systems"
 version = "0.1.0"
 description = ""
 authors = ["yudhisteer <yudhisteer.chin@gmail.com>"]
@@ -13,6 +13,8 @@ python-dotenv = "^1.0.1"
 black = "^25.1.0"
 isort = "^6.0.0"
 openai = "^1.63.2"
+pydantic = "^2.6.1"
+requests = "^2.32.3"
 
 
 [tool.poetry.group.dev.dependencies]

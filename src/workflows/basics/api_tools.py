@@ -1,18 +1,25 @@
 import json
 import os
 import sys
+import logging
+from typing import Dict, Any
 
 import requests
 from pydantic import BaseModel, Field
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
-from src.utils.utils import call_tools, parse_tools_response
+from src.utils.utils import call_tool, execute_tool, parse_tool_response
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # https://platform.openai.com/docs/assistants/tools/function-calling
 # Based on https://github.com/daveebbelaar/ai-cookbook/blob/main/patterns/workflows/1-introduction/3-tools.py
 
 
 class WeatherResponse(BaseModel):
+    """Response model for weather information."""
     temperature: float = Field(
         description="The current temperature in celsius for the given location."
     )
@@ -21,41 +28,38 @@ class WeatherResponse(BaseModel):
     )
 
 
-def get_weather(latitude: float, longitude: float) -> dict:
-    """This is a publically available API that returns the weather for a given location.
-
-    Output format:
-    {
-    'time': '2025-02-28T19:45',
-    'interval': 900,
-    'temperature_2m': 10.2,
-    'wind_speed_10m': 20.3
-    }
+def get_weather(latitude: float, longitude: float) -> Dict[str, Any]:
+    """Get weather data for a given location using the Open-Meteo API.
+    
+    Args:
+        latitude: Latitude coordinate
+        longitude: Longitude coordinate
+        
+    Returns:
+        Dictionary containing current weather data
+        
+    Raises:
+        requests.RequestException: If the API request fails
     """
-    response = requests.get(
-        f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m"
-    )
-    data = response.json()
-    return data["current"]
+    try:
+        response = requests.get(
+            f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m"
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data["current"]
+    except requests.RequestException as e:
+        logger.error(f"Failed to fetch weather data: {str(e)}")
+        raise
 
 
-def call_function(name: str, args: dict) -> dict:
-    if name == "get_weather":
-        return get_weather(**args)
-    else:
-        raise ValueError(f"Function {name} not found")
-
-
-if __name__ == "__main__":
-    system_prompt = "You are a helpful weather assistant."
-    user_prompt = "What's the weather like in Seattle today?"
-
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-
-    tools = [
+def get_weather_tools() -> list:
+    """Get the list of available weather-related tools.
+    
+    Returns:
+        List of tool definitions
+    """
+    return [
         {
             "type": "function",
             "function": {
@@ -75,41 +79,61 @@ if __name__ == "__main__":
         }
     ]
 
-    # ------------------ Model knows to call the function -------------------#
-    response = call_tools(messages, tools)
-    print(
-        "Response:", response, "\n"
-    )  # model provides the tool call id and the function name and the longitude and latitude args
 
-    # print(response.model_dump())
-    # print(response.choices[0].message.tool_calls) # [ChatCompletionMessageToolCall(id='call_bnZManuFi76uwRm7N4gAEGUn', function=Function(arguments='{"latitude":47.6062,"longitude":-122.3321}', name='get_weather'), type='function')]
+def process_weather_query(system_prompt: str, user_prompt: str) -> WeatherResponse:
+    """Process a weather query using the OpenAI API and weather tools.
+    
+    Args:
+        system_prompt: System prompt for the AI
+        user_prompt: User's weather query
+        
+    Returns:
+        WeatherResponse object containing temperature and natural language response
+        
+    Raises:
+        Exception: If any step of the process fails
+    """
+    try:
+        # Initialize messages
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
 
-    # ------------------ We now execute the function and get the result ------------------#
-    ### Note: We are executing the function and not the model
-    for tool_call in response.choices[0].message.tool_calls:
-        # Get the function name
-        function_name = tool_call.function.name  # get_weather
-        # Get the arguments
-        function_args = json.loads(
-            tool_call.function.arguments
-        )  # {'latitude': 47.6062, 'longitude': -122.3321}
-        # Add the tool call to the messages
-        messages.append(response.choices[0].message)
-        # Execute the function
-        result = call_function(
-            function_name, function_args
-        )  # {'time': '2025-02-28T20:00', 'interval': 900, 'temperature_2m': 10.0, 'wind_speed_10m': 3.1}
-        # Add the result to the messages
-        messages.append(
-            {
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": json.dumps(result),
-            }
-        )
-    print("messages:", messages, "\n")
+        # Get tools
+        tools = get_weather_tools()
+        
+        # Get initial response with tool calls
+        response = call_tool(messages, tools)
+        logger.info("Received initial response with tool calls")
 
-    # ------------------ We now parse the result ------------------#
-    result = parse_tools_response(messages, tools, WeatherResponse)
-    print("Temperature:", result.temperature)
-    print("Response:", result.response)
+        # Execute tools and get results
+        messages = execute_tool(response, messages, {"get_weather": get_weather})
+        logger.info("Executed weather tools and got results")
+
+        # Parse final response
+        result = parse_tool_response(messages, tools, WeatherResponse)
+        logger.info("Successfully parsed weather response")
+        
+        return result
+
+    except Exception as e:
+        logger.error(f"Error processing weather query: {str(e)}")
+        raise
+
+
+if __name__ == "__main__":
+    try:
+        system_prompt = "You are a helpful weather assistant."
+        user_prompt = "What's the weather like in Seattle today?"
+        
+        result = process_weather_query(system_prompt, user_prompt)
+        
+        print("\nWeather Information:")
+        print("-" * 20)
+        print(f"Temperature: {result.temperature}°C")
+        print(f"Response: {result.response}")
+        
+    except Exception as e:
+        logger.error(f"Failed to process weather query: {str(e)}")
+        sys.exit(1)
