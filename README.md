@@ -165,3 +165,5 @@ Based on the provided data, here is the sales analysis table rearranged in ascen
 7. https://www.ycombinator.com/library/Lt-vertical-ai-agents-could-be-10x-bigger-than-saas
 8. https://www.youtube.com/watch?v=bZzyPscbtI8&list=LL&index=3&t=1534s&ab_channel=DaveEbbelaar
 9. https://github.com/daveebbelaar/ai-cookbook
+10. https://www.youtube.com/watch?v=yj-wSRJwrrc&ab_channel=AIEngineer
+
