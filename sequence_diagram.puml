@@ -1,0 +1,73 @@
+
+@startuml
+participant User
+participant Execute
+participant _thought
+participant _action
+participant _observation
+participant Logger
+
+' Initial call from User to Execute
+User -> Execute: execute(query)
+Execute -> Logger: info("Request: {query}")
+Execute -> Execute: set self.request = query, total_interactions = 0, agent = base_agent
+
+' Main loop with iteration condition
+loop for each iteration until stop or max_interactions reached
+    Execute -> Execute: total_interactions += 1
+    Execute -> Logger: info("Iteration no: {total_interactions}")
+
+    ' Check maximum iterations
+    alt total_interactions >= config.max_interactions
+        Execute -> Logger: info("Max interactions reached. Exiting...")
+        Execute --> User: return ""
+    else
+        ' Step 1: Think about action
+        Execute -> _thought: __thought(agent)
+        note right: Currently a placeholder (pass)
+
+        ' Step 2: Action phase
+        _thought -> _action: __action(agent)
+        _action -> _action: tool = __choose_tool(agent)
+
+        ' Step 3: Check if tool exists
+        alt tool is not None
+            ' Step 4a: Check if tool is an Agent
+            alt isinstance(tool.func, Agent)
+                _action -> _action: agent = tool.func
+                _action -> Logger: info("New agent: {agent.name}")
+                _action --> Execute: return (agent, True)
+                Execute -> Execute: skip = True
+            else
+                ' Step 4b: Execute the tool if not an Agent
+                _action -> _action: __execute_tool(tool, agent)
+                _action --> Execute: return (agent, False)
+                Execute -> Execute: skip = False
+            end
+        else
+            ' Step 4c: No tool chosen, revert to base agent
+            _action -> _action: agent = base_agent
+            _action -> Logger: info("No tool to execute")
+            _action --> Execute: return (agent, True)
+            Execute -> Execute: skip = True
+        end
+
+        ' Step 5: Decide whether to observe or skip
+        alt skip == True
+            note right: Skip iteration
+        else
+            ' Step 6: Observe the result
+            Execute -> _observation: __observation(agent)
+            _observation --> Execute: return ReactEnd(stop, final_answer, confidence)
+
+            ' Step 7: Check if should stop
+            alt ReactEnd.stop == True
+                Execute -> Logger: info("Final Answer: {ReactEnd.final_answer}")
+                Execute --> User: return ReactEnd.final_answer
+            end
+        end
+    end
+end
+
+' End of diagram
+@enduml
