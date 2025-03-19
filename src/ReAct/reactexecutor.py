@@ -1,5 +1,13 @@
 from typing import List
-from common import Agent, AgentConfig
+from common import Agent, AgentConfig, ReactEnd
+
+import logging
+
+from util import logger_setup
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
 
 class ReactExecutor:
     def __init__(self, agent: List[Agent], config: AgentConfig) -> None:
@@ -9,32 +17,51 @@ class ReactExecutor:
 
     def __thought(self, current_agent: Agent) -> None:
         """
-        This function is used to generate the thought of the current agent.
+        Reason about the next action to take.
         """
         pass
 
-    def __action(self, current_agent: Agent) -> None:
+    def __action(self, current_agent: Agent) -> Agent:
         """
-        This function is used to take action based on the thought by the current agent.
-        """
-        pass
-
-    def __observation(self, current_agent: Agent) -> None:
-        """
-        This function is used to observe the outcome of the action taken by the current agent.
+        Decide on an action to take.
         """
         pass
 
+    def __observation(self, current_agent: Agent) -> ReactEnd:
+        """
+        Execute action and feedback observation.
+        """
+        pass
 
-    def execute(self, request: str) -> None:
+
+    def execute(self, query_input: str) -> str:
         """
-        This function is used to execute the request.
+        Loop Workflow
+        -------------
+        Input Query → [THINK → ACT → OBSERVE] → Final Answer
+                        ↑__________________|
+                        (repeats until done)
         """
-        self.request = request
-        current_agent = self.base_agent
-        self.__thought(current_agent)
-        self.__action(current_agent)
-        return self.__observation(current_agent)
+        logger.info(f"Request: {query_input}")
+        self.request = query_input
+        total_interactions = 0
+        agent = self.base_agent
+        while True:
+            total_interactions += 1
+            self.__thought(agent) # Thinks about what to do
+            agent = self.__action(agent) # Takes an action
+            observation = self.__observation(agent) # Observes the result
+            if observation.stop: # True if the context is enough to answer the request
+                logger.info(f"Final Answer: {observation.final_answer}")
+                return observation.final_answer 
+            
+            if self.config.max_interactions <= total_interactions:
+                logger.info("Max interactions reached. Exiting...")
+                return "" # returns empty string if max interactions reached
+
+
+
+
 
 
 
