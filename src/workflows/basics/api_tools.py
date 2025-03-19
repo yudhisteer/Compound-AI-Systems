@@ -1,12 +1,11 @@
 import json
+import logging
 import os
 import sys
-import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 import requests
 from pydantic import BaseModel, Field
-
 from util.utils import call_tool, execute_tool, parse_tool_response
 
 # Configure logging
@@ -20,8 +19,10 @@ logger = logging.getLogger(__name__)
 # Data Model
 # --------------------------------------------------------------
 
+
 class WeatherResponse(BaseModel):
     """Response model for weather information."""
+
     temperature: float = Field(
         description="The current temperature in celsius for the given location."
     )
@@ -30,21 +31,21 @@ class WeatherResponse(BaseModel):
     )
 
 
-
 # --------------------------------------------------------------
 # Tools
 # --------------------------------------------------------------
 
+
 def get_weather(latitude: float, longitude: float) -> Dict[str, Any]:
     """Get weather data for a given location using the Open-Meteo API.
-    
+
     Args:
         latitude: Latitude coordinate
         longitude: Longitude coordinate
-        
+
     Returns:
         Dictionary containing current weather data
-        
+
     Raises:
         requests.RequestException: If the API request fails
     """
@@ -60,21 +61,21 @@ def get_weather(latitude: float, longitude: float) -> Dict[str, Any]:
         raise
 
 
-
 # --------------------------------------------------------------
 # Workflow
 # --------------------------------------------------------------
 
+
 def process_weather_query(system_prompt: str, user_prompt: str) -> WeatherResponse:
     """Process a weather query using the OpenAI API and weather tools.
-    
+
     Args:
         system_prompt: System prompt for the AI
         user_prompt: User's weather query
-        
+
     Returns:
         WeatherResponse object containing temperature and natural language response
-        
+
     Raises:
         Exception: If any step of the process fails
     """
@@ -103,7 +104,7 @@ def process_weather_query(system_prompt: str, user_prompt: str) -> WeatherRespon
                 "strict": True,
             },
         }
-        
+
         # Get initial response with tool calls
         response = call_tool(messages, tools)
         logger.info("Received initial response with tool calls")
@@ -115,7 +116,7 @@ def process_weather_query(system_prompt: str, user_prompt: str) -> WeatherRespon
         # Parse final response
         result = parse_tool_response(messages, tools, WeatherResponse)
         logger.info("Successfully parsed weather response")
-        
+
         return result
 
     except Exception as e:
@@ -127,14 +128,14 @@ if __name__ == "__main__":
     try:
         system_prompt = "You are a helpful weather assistant."
         user_prompt = "What's the weather like in Seattle today?"
-        
+
         result = process_weather_query(system_prompt, user_prompt)
-        
+
         print("\nWeather Information:")
         print("-" * 20)
         print(f"Temperature: {result.temperature}°C")
         print(f"Response: {result.response}")
-        
+
     except Exception as e:
         logger.error(f"Failed to process weather query: {str(e)}")
         sys.exit(1)

@@ -7,7 +7,6 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from pydantic import BaseModel, Field
 
-
 # https://platform.openai.com/docs/assistants/tools/function-calling
 # Based on https://github.com/daveebbelaar/ai-cookbook/blob/main/patterns/workflows/1-introduction/3-tools.py
 
@@ -27,6 +26,7 @@ client = OpenAI(api_key=api_key)
 # Data Model
 # --------------------------------------------------------------
 
+
 class DBResponse(BaseModel):
     answer: str = Field(description="The answer to the user's question.")
     id: int = Field(description="The record id of the answer.")
@@ -36,15 +36,17 @@ class DBResponse(BaseModel):
 # Tools
 # --------------------------------------------------------------
 
+
 def search_db(question: str):
     data_path = os.path.join("src", "workflows", "basics", "data.json")
     with open(data_path, "r") as f:
         return json.load(f)
-    
+
 
 # --------------------------------------------------------------
 # Private functions
 # --------------------------------------------------------------
+
 
 def _call_tool(
     messages: list[dict],
@@ -67,7 +69,6 @@ def _call_tool(
 
     except Exception as e:
         raise Exception(f"Error getting chat completion: {str(e)}")
-    
 
 
 def _call_function(name: str, args: dict, function_registry: dict) -> dict:
@@ -78,6 +79,7 @@ def _call_function(name: str, args: dict, function_registry: dict) -> dict:
         return function_registry[name](**args)
     else:
         raise ValueError(f"Function {name} not found")
+
 
 def _execute_tool(
     response: ChatCompletion, messages: list[dict], function_registry: dict
@@ -138,15 +140,6 @@ def _parse_tool_response(
 
     except Exception as e:
         raise Exception(f"Error getting chat completion: {str(e)}")
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

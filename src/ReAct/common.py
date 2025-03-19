@@ -1,14 +1,18 @@
-from pydantic import BaseModel, Field
 from typing import Callable, List, Union
+
 from openai import OpenAI
+from pydantic import BaseModel, Field
+
 # --------------------------------------------------------------
 # Data Model
 # --------------------------------------------------------------
+
 
 class ToolChoice(BaseModel):
     """
     Data model for the tool choice
     """
+
     tool_name: str = Field(description="The name of the tool to use.")
     reason_of_choice: str = Field(description="The reasoning for choosing the tool.")
 
@@ -17,9 +21,17 @@ class ReactEnd(BaseModel):
     """
     Data model for the observation step
     """
-    stop: bool= Field(..., description="True if the context is enough to answer the request else False")
-    final_answer: str = Field(..., description="Final answer is the context is enough to answer the request")
-    confidence: float = Field(..., description="Confidence score of the final answer between 0 and 1")
+
+    stop: bool = Field(
+        ...,
+        description="True if the context is enough to answer the request else False",
+    )
+    final_answer: str = Field(
+        ..., description="Final answer is the context is enough to answer the request"
+    )
+    confidence: float = Field(
+        ..., description="Confidence score of the final answer between 0 and 1"
+    )
 
 
 class Tool:
@@ -27,6 +39,7 @@ class Tool:
         self.desc = desc
         self.func = func
         self.name = name
+
 
 class Agent(BaseModel):
     """
@@ -58,6 +71,7 @@ class Agent(BaseModel):
             instructions=get_dynamic_instructions
         )
     """
+
     name: str = "Agent"
     model: str = "gpt-4o-mini"
     instructions: Union[str, Callable[[], str]] = "You are a helpful assistant"
@@ -77,9 +91,7 @@ class AgentConfig:
     def with_model_client(self, model: OpenAI):
         self.model = model
         return self
-    
+
     def with_token_limit(self, token_limit: int):
         self.token_limit = token_limit
         return self
-    
-

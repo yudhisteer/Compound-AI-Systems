@@ -20,16 +20,18 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 model = "gpt-4o-mini"
 
 
-
 # --------------------------------------------------------------
 # Data Models
 # --------------------------------------------------------------
+
 
 class EventExtraction(BaseModel):
     """First LLM call: Extract basic event information"""
 
     description: str = Field(description="Raw description of the event")
-    is_reservation_event: bool = Field(description="Whether this text describes a reservation event")
+    is_reservation_event: bool = Field(
+        description="Whether this text describes a reservation event"
+    )
     confidence_score: float = Field(description="Confidence score between 0 and 1")
 
 
@@ -37,21 +39,28 @@ class EventDetails(BaseModel):
     """Second LLM call: Parse specific event details"""
 
     name: str = Field(description="Name of the person making the reservation")
-    date: str = Field(description="Date and time of the reservation. Use ISO 8601 to format this value.")
+    date: str = Field(
+        description="Date and time of the reservation. Use ISO 8601 to format this value."
+    )
     event_name: str = Field(description="Name of the event")
     participants: int = Field(description="Number of people in the reservation")
-    reservation_request: Optional[str] = Field(description="Specific reservation request made by the user")
+    reservation_request: Optional[str] = Field(
+        description="Specific reservation request made by the user"
+    )
 
 
 class EventConfirmation(BaseModel):
     """Third LLM call: Generate confirmation message"""
 
-    confirmation_message: str = Field(description="Natural language confirmation message")
+    confirmation_message: str = Field(
+        description="Natural language confirmation message"
+    )
 
 
 # --------------------------------------------------------------
 # Tools
 # --------------------------------------------------------------
+
 
 def extract_event_info(user_input: str) -> EventExtraction:
     """First LLM call to determine if input is a reservation event"""
@@ -132,11 +141,10 @@ def generate_confirmation(event_details: EventDetails) -> EventConfirmation:
     return result
 
 
-
-
 # --------------------------------------------------------------
 # Workflow
 # --------------------------------------------------------------
+
 
 def process_reservation_request(user_input: str):
     """Main function implementing the prompt chain with gate check"""
@@ -167,8 +175,6 @@ def process_reservation_request(user_input: str):
     logger.info("Reservation request processing completed successfully")
 
     return confirmation
-
-
 
 
 if __name__ == "__main__":
