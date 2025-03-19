@@ -34,7 +34,7 @@ class ReactExecutor:
             if isinstance(tool.func, Agent):
                 # assign the tool as an agent (tool.func is already an agent)
                 agent = tool.func
-                logger.info(f"New agent: {agent.name} \n")
+                logger.info(f"New agent: {agent.name}")
                 return agent, True
 
             # Execute the tool
@@ -111,6 +111,7 @@ class ReactExecutor:
         total_interactions = 0
         agent = self.base_agent
         while True:
+            print(f"\nIteration no: {total_interactions+1}")
             total_interactions += 1
             if self.config.max_interactions <= total_interactions:
                 logger.info("Max interactions reached. Exiting...")
@@ -127,3 +128,4 @@ class ReactExecutor:
             if observation.stop:  # True if the context is enough to answer the request
                 logger.info(f"Final Answer: {observation.final_answer}")
                 return observation.final_answer
+            
