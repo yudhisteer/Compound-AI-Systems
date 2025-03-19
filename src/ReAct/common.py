@@ -23,7 +23,7 @@ class ReactEnd(BaseModel):
 
 
 class Tool:
-    def __init__(self, name: str, func, desc: str) -> None:
+    def __init__(self, name: str, func: Callable, desc: str) -> None:
         self.desc = desc
         self.func = func
         self.name = name

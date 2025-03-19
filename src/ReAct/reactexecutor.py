@@ -21,7 +21,7 @@ class ReactExecutor:
         """
         pass
 
-    def __action(self, current_agent: Agent) -> Agent:
+    def __action(self, current_agent: Agent) -> tuple[Agent, bool]:
         """
         Decide on an action to take.
         """
@@ -48,16 +48,21 @@ class ReactExecutor:
         agent = self.base_agent
         while True:
             total_interactions += 1
+            if self.config.max_interactions <= total_interactions:
+                logger.info("Max interactions reached. Exiting...")
+                return "" # returns empty string if max interactions reached
+
             self.__thought(agent) # Thinks about what to do
-            agent = self.__action(agent) # Takes an action
+            # we will be retrieving the tool and the tool can be another agent
+            # if the agent is different from the base agent, we will skip.
+            agent, skip = self.__action(agent) # Takes an action
+            if skip:
+                continue # skip the current iteration
             observation = self.__observation(agent) # Observes the result
             if observation.stop: # True if the context is enough to answer the request
                 logger.info(f"Final Answer: {observation.final_answer}")
                 return observation.final_answer 
             
-            if self.config.max_interactions <= total_interactions:
-                logger.info("Max interactions reached. Exiting...")
-                return "" # returns empty string if max interactions reached
 
 
 

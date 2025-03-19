@@ -1,13 +1,14 @@
 import os
 from openai import OpenAI
-from src.ReAct.common import Agent, AgentConfig
-from src.ReAct.reactexecutor import ReactExecutor
+from common import Agent, AgentConfig
+from reactexecutor import ReactExecutor
 open_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
+from tools import people_search_tool, calculator_tool, date_tool
 
 main_agent = Agent(
-    name="Main Agent",
+    name="MainAgent",
     instructions="You are a helpful assistant that can answer questions and help with tasks.",
+    functions=[people_search_tool, calculator_tool, date_tool]
 )
 
 if __name__ == "__main__":
