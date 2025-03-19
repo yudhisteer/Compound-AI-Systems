@@ -4,8 +4,7 @@ import sys
 from openai import OpenAI
 from pydantic import BaseModel
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
-from src.utils.utils import get_chat_completion_parse
+from util.utils import get_chat_completion_parse
 
 
 class Person(BaseModel):

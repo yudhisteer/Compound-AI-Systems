@@ -1,43 +1,20 @@
-import json
-
-from pydantic import BaseModel
-
-from autogen import ConversableAgent
-
-
-# 1. Define our lesson plan structure, a lesson with a number of objectives
-class LearningObjective(BaseModel):
-    title: str
-    description: str
+import os
+from openai import OpenAI
+from src.ReAct.common import Agent, AgentConfig
+from src.ReAct.reactexecutor import ReactExecutor
+open_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-class LessonPlan(BaseModel):
-    title: str
-    learning_objectives: list[LearningObjective]
-    script: str
+main_agent = Agent(
+    name="Main Agent",
+    instructions="You are a helpful assistant that can answer questions and help with tasks.",
+)
+
+if __name__ == "__main__":
+    query = "What is the capital of France?"
+    agent_config = AgentConfig().with_model_client(open_ai).with_token_limit(5000).with_max_interactions(5)
+    react_executor = ReactExecutor(main_agent, agent_config)
+    response = react_executor.execute(query)
+    print(response)
 
 
-# 2. Add our lesson plan structure to the LLM configuration
-llm_config = {
-    "api_type": "openai",
-    "model": "gpt-4o-mini",
-    "response_format": LessonPlan,
-}
-
-# 3. The agent's system message doesn't need any formatting instructions
-system_message = """You are a classroom lesson agent.
-Given a topic, write a lesson plan for a fourth grade class.
-"""
-
-my_agent = ConversableAgent(
-    name="lesson_agent",
-    llm_config=llm_config,
-    system_message=system_message
-    )
-
-# 4. Chat directly with our agent
-chat_result = my_agent.run("In one sentence, what's the big deal about AI?")
-
-# 5. Get and print our lesson plan
-lesson_plan_json = json.loads(chat_result.chat_history[-1]["content"])
-print(json.dumps(lesson_plan_json, indent=2))

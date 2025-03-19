@@ -7,8 +7,7 @@ from typing import Dict, Any
 import requests
 from pydantic import BaseModel, Field
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
-from src.utils.utils import call_tool, execute_tool, parse_tool_response
+from util.utils import call_tool, execute_tool, parse_tool_response
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +16,9 @@ logger = logging.getLogger(__name__)
 # https://platform.openai.com/docs/assistants/tools/function-calling
 # Based on https://github.com/daveebbelaar/ai-cookbook/blob/main/patterns/workflows/1-introduction/3-tools.py
 
+# --------------------------------------------------------------
+# Data Model
+# --------------------------------------------------------------
 
 class WeatherResponse(BaseModel):
     """Response model for weather information."""
@@ -27,6 +29,11 @@ class WeatherResponse(BaseModel):
         description="A natural language response to the user's question."
     )
 
+
+
+# --------------------------------------------------------------
+# Tools
+# --------------------------------------------------------------
 
 def get_weather(latitude: float, longitude: float) -> Dict[str, Any]:
     """Get weather data for a given location using the Open-Meteo API.
@@ -53,32 +60,10 @@ def get_weather(latitude: float, longitude: float) -> Dict[str, Any]:
         raise
 
 
-def get_weather_tools() -> list:
-    """Get the list of available weather-related tools.
-    
-    Returns:
-        List of tool definitions
-    """
-    return [
-        {
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get current temperature for provided coordinates in celsius.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "latitude": {"type": "number"},
-                        "longitude": {"type": "number"},
-                    },
-                    "required": ["latitude", "longitude"],
-                    "additionalProperties": False,
-                },
-                "strict": True,
-            },
-        }
-    ]
 
+# --------------------------------------------------------------
+# Workflow
+# --------------------------------------------------------------
 
 def process_weather_query(system_prompt: str, user_prompt: str) -> WeatherResponse:
     """Process a weather query using the OpenAI API and weather tools.
@@ -101,7 +86,23 @@ def process_weather_query(system_prompt: str, user_prompt: str) -> WeatherRespon
         ]
 
         # Get tools
-        tools = get_weather_tools()
+        tools = {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get current temperature for provided coordinates in celsius.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "latitude": {"type": "number"},
+                        "longitude": {"type": "number"},
+                    },
+                    "required": ["latitude", "longitude"],
+                    "additionalProperties": False,
+                },
+                "strict": True,
+            },
+        }
         
         # Get initial response with tool calls
         response = call_tool(messages, tools)

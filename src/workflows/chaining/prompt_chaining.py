@@ -20,8 +20,10 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 model = "gpt-4o-mini"
 
 
-# -------------------------------- Data Models --------------------------------#
 
+# --------------------------------------------------------------
+# Data Models
+# --------------------------------------------------------------
 
 class EventExtraction(BaseModel):
     """First LLM call: Extract basic event information"""
@@ -47,8 +49,9 @@ class EventConfirmation(BaseModel):
     confirmation_message: str = Field(description="Natural language confirmation message")
 
 
-# -------------------------------- Functions  --------------------------------#
-
+# --------------------------------------------------------------
+# Tools
+# --------------------------------------------------------------
 
 def extract_event_info(user_input: str) -> EventExtraction:
     """First LLM call to determine if input is a reservation event"""
@@ -129,8 +132,11 @@ def generate_confirmation(event_details: EventDetails) -> EventConfirmation:
     return result
 
 
-# -------------------------------- Chain Workflow  --------------------------------#
 
+
+# --------------------------------------------------------------
+# Workflow
+# --------------------------------------------------------------
 
 def process_reservation_request(user_input: str):
     """Main function implementing the prompt chain with gate check"""
@@ -161,6 +167,8 @@ def process_reservation_request(user_input: str):
     logger.info("Reservation request processing completed successfully")
 
     return confirmation
+
+
 
 
 if __name__ == "__main__":
