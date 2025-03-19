@@ -1,5 +1,5 @@
-[tool.poetry]
-name = "autonomous-multi-agent-framework-using-autogen"
+ [tool.poetry]
+name = "compound-ai-systems"
 version = "0.1.0"
 description = ""
 authors = ["yudhisteer <yudhisteer.chin@gmail.com>"]

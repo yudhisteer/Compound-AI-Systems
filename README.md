@@ -1,4 +1,4 @@
-# Autonomous-Multi-Agent-Framework-using-AutoGen
+# Compound AI Systems
 
 ## Plan of Action
 1. [Understanding Agents](#understanding-agents)
