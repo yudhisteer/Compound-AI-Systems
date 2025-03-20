@@ -5,8 +5,9 @@ from openai import OpenAI
 from .common import Agent, AgentConfig
 from .reactexecutor import ReactExecutor
 
-open_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from .tools import calculator_tool, date_tool, people_search_tool
+
+open_ai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 main_agent = Agent(
     name="MainAgent",
