@@ -76,7 +76,7 @@ class ReactExecutor:
             if isinstance(tool.func, Agent):
                 # assign the tool as an agent (tool.func is already an agent)
                 agent = tool.func
-                logger.info(f"New agent: {agent.name} \n")
+                logger.info(f"New agent: {agent.name}")
                 return agent, True
 
             # SCENARIO 2: When no tool is available and control returns to the base agent
@@ -176,3 +176,4 @@ class ReactExecutor:
             if observation.stop:  # True if the context is enough to answer the request
                 logger.info(f"Final Answer: {observation.final_answer}")
                 return observation.final_answer
+            
