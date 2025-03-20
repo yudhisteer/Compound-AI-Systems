@@ -2,6 +2,8 @@ import inspect
 import json
 import logging
 from typing import List
+import sys
+from datetime import datetime
 
 from util import logger_setup
 from .brain import Brain
@@ -47,8 +49,11 @@ class ReactExecutor:
         First think step by step about what to do. Plan step by step what to do.
         Continuously adjust your reasoning based on intermediate results and reflections, adapting your strategy as you progress.
         Your goal is to demonstrate a thorough, adaptive, and self-reflective problem-solving process, emphasizing dynamic thinking and learning from your own reasoning.
+        Always use the available tools to answer the question.
 
-        Make sure to include the available tools in your plan.
+        Make sure to include the available tools in your plan. Do not use your own knowledge. For every calculations use appropriate tool.
+
+        Today's date is: {datetime.now().date()}
 
         Your available tools are: 
         {tools} 
@@ -59,8 +64,8 @@ class ReactExecutor:
         """
 
         response = self.brain.think(prompt=prompt, agent=current_agent)
-        print(f"===================Thought===================")
-        print(f"Thought: {response} \n")
+        print(f"Thought___________________________\n", flush=True)
+        print(f"{response} \n", flush=True)
         # Store AI assistant's response in conversation history
         self.brain.remember("Assistant: " + response)
 
@@ -95,24 +100,47 @@ class ReactExecutor:
         """
         Execute action and feedback observation.
         """
-        return ReactEnd(
-            stop=True, final_answer="This is the final answer", confidence=0.7
-        )
+        prompt = f"""Is the context information  enough to finally answer to this request: {self.request}?
+       
+        Assign a quality confidence score between 0.0 and 1.0 to guide your approach:
+        - 0.8+: Continue current approach
+        - 0.5-0.7: Consider minor adjustments
+        - Below 0.5: Seriously consider backtracking and trying a different approach
+        
+        CONTEXT HISTORY:
+        ---
+        {self.brain.recall()}
+        """
+        response: ReactEnd = self.brain.think(prompt=prompt, agent=current_agent, output_format=ReactEnd)
+        # store the assistant's response in message history
+        self.brain.remember("Assistant: " + response.final_answer)
+        self.brain.remember("Confidence score: " + str(response.confidence))
 
+        print(f"\nObservation___________________________\n", flush=True)
+        print(f"Observation: {response.final_answer}", flush=True)
+        print(f"Confidence score: {response.confidence} \n", flush=True)
+        return response
 
 
     def __choose_tool(self, agent: Agent) -> Tool:
         """
         Choose the tool to use.
         """
-        # TODO: Ask LLM to choose the tool
-        # Hardcodedto select people_search
-        response: ToolChoice = ToolChoice(
-            tool_name="people_search",
-            reason_of_choice="We need to search for information about people.",
-        )
+        tools = self.__get_tools(agent)
+        prompt = f"""To Answer the following request as best you can: {self.request}.
+        Choose the tool to use if need be. The tool should be among:
+        {tools}
+
+        CONTEXT HISTORY:
+        ---
+        {self.brain.recall()}
+        """
+        response: ToolChoice = self.brain.think(prompt=prompt, agent=agent, output_format=ToolChoice)
+        message = f""" Assistant: I should use this tool: {response.tool_name}. Reason: {response.reason_of_choice}"""
+        # store the assistant's response in message history
+        self.brain.remember(message)
+
         tool = [tool for tool in agent.functions if tool.name == response.tool_name]
-        logger.info(f"Tool: {tool}") # output Tool: [<src.ReAct.common.Tool object>] in first log
         return tool[0] if tool else None
 
     def __execute_tool(self, tool: Tool, agent: Agent):
@@ -122,26 +150,43 @@ class ReactExecutor:
         if tool is None:
             logger.info("Tool is None")
             return None
+        
+        print(f"\nExecuting Tool: {tool.name} ___________________________\n", flush=True)
+        prompt = f"""To Answer the following request as best you can: {self.request}.
+        Determine the inputs to send to the tool: {tool.name}
+        Given that the function signature of the tool function is: {inspect.signature(tool.func)}.
+
+        CONTEXT HISTORY:
+        ---
+        {self.brain.recall()}
+        """
 
         # find parameters for tool
-        parameters = inspect.signature(tool.func).parameters
-
-        # TODO: Ask LLM to fill parameters
         # "parameter_name": <function parameter>, E.g. "operation": <function parameter>, "a": <function parameter>, "b": <function parameter>
-        response = f"""
-        {{
-            {', '.join([f'"{param}": <function parameter>' for param in parameters])}
-        }}"""
-        logger.info(f"Response: {response}")
+        parameters = inspect.signature(tool.func).parameters
+        response = {}
+        # some function do not have any parameters
+        if len(parameters) > 0:
+            prompt +=  f"""RESPONSE FORMAT:
+                        {{
+                            {', '.join([f'"{param}": <function parameter>' for param in parameters])}
+                        }}"""
+            prompt += "\nIMPORTANT: Your entire response must be only a valid JSON object with no additional text, explanations, or formatting before or after. Do not include markdown code blocks, quotation marks around the JSON, or any other text."
+            # llm will return a string of the form: {"operation": "add", "a": 1, "b": 2} 
+            response = self.brain.think(prompt=prompt, agent=agent)
+            self.brain.remember("Assistant: " + response)
 
-        try:
-            resp = json.loads(response)
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON response from LLM")
-            return
-
-        tool_result = tool.func(**resp)
-        logger.info(f"Tool result: {tool_result}")
+            try:
+                # we need to convert the string to a dictionary
+                response = json.loads(response)
+            except json.JSONDecodeError:
+                logger.error("Invalid JSON response from LLM")
+                return
+            
+        tool_result = tool.func(**response)
+        print(f"Tool params: {response}", flush=True)
+        print(f"Tool result: {tool_result}", flush=True)
+        self.brain.remember(f"Assistant: {f'Tool Result: {tool_result}'}")
 
 
 
@@ -158,7 +203,7 @@ class ReactExecutor:
         total_interactions = 0
         agent = self.base_agent
         while True:
-            print(f"\nIteration no: {total_interactions+1}")
+            print(f"\n\n============================================================== Iteration no: {total_interactions+1} ==============================================================\n\n", flush=True)
             total_interactions += 1
             if self.config.max_interactions <= total_interactions:
                 logger.info("Max interactions reached. Exiting...")

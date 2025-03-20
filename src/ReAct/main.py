@@ -16,12 +16,12 @@ main_agent = Agent(
 )
 
 if __name__ == "__main__":
-    query = "What is the half of Einstien's age?"
+    query = "Calculate twice of 'Mahatma Gandhi's age as of today."
     agent_config = (
         AgentConfig()
         .with_model_client(open_ai)
         .with_token_limit(5000)
-        .with_max_interactions(5)
+        .with_max_interactions(10)
     )
     react_executor = ReactExecutor(main_agent, agent_config)
     response = react_executor.execute(query)

@@ -27,7 +27,7 @@ def search_wikipedia(search_query: str):
 
 
 def date_of_today():
-    return datetime.date.today()
+    return datetime.now().date()
 
 
 calculator_tool = Tool(
