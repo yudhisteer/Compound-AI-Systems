@@ -2,7 +2,7 @@ from typing import List, Callable, Union, Optional
 
 from pydantic import BaseModel
 
-from common import Agent
+from .common import Agent
 
 AgentFunction = Callable[[], Union[str, "Agent", dict]]
 
