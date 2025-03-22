@@ -2,7 +2,7 @@ import inspect
 import json
 from datetime import datetime
 from typing import Callable
-import json
+
 # From: https://github.com/apssouza22/ai-agent-react-llm/blob/version-2/src/version2
 
 
@@ -70,6 +70,7 @@ def function_to_json(func: Callable) -> dict:
         },
     }
 
+
 def pretty_print_messages(messages) -> None:
     for message in messages:
         if message["role"] != "assistant":
@@ -92,19 +93,22 @@ def pretty_print_messages(messages) -> None:
             arg_str = json.dumps(json.loads(args)).replace(":", "=")
             print(f"\033[95m{name}\033[0m({arg_str[1:-1]})")
 
+
 if __name__ == "__main__":
-    
+
     # Example function
-    def calculate_area(shape: str, length: float, width: float = None, radius: float = None) -> float:
+    def calculate_area(
+        shape: str, length: float, width: float = None, radius: float = None
+    ) -> float:
         """
         Calculate the area of a geometric shape.
-        
+
         Args:
             shape: The type of shape ('rectangle', 'circle', or 'square')
             length: The length for rectangles or side length for squares
             width: The width for rectangles (optional)
             radius: The radius for circles (optional)
-        
+
         Returns:
             The calculated area of the shape
         """
@@ -114,6 +118,7 @@ if __name__ == "__main__":
             return length * length
         elif shape == "circle" and radius is not None:
             import math
+
             return math.pi * radius * radius
         else:
             raise ValueError("Invalid shape or missing required parameters")
@@ -166,7 +171,6 @@ if __name__ == "__main__":
     #         }
     #     }
 
-
     # Simple message
     debug_print("Starting application")
 
@@ -187,17 +191,12 @@ if __name__ == "__main__":
     except Exception as e:
         debug_print("Error occurred:", str(e))
 
-
-
     messages = [
-        {
-            "role": "user",
-            "content": "Can you search for information about Python?"
-        },
+        {"role": "user", "content": "Can you search for information about Python?"},
         {
             "role": "assistant",
             "sender": "ResearchAgent",
-            "content": "I'll search for information about Python for you."
+            "content": "I'll search for information about Python for you.",
         },
         {
             "role": "assistant",
@@ -207,30 +206,30 @@ if __name__ == "__main__":
                 {
                     "function": {
                         "name": "search_web",
-                        "arguments": '{"query": "Python programming language", "max_results": 5}'
+                        "arguments": '{"query": "Python programming language", "max_results": 5}',
                     }
                 }
-            ]
+            ],
         },
         {
             "role": "assistant",
-            "sender": "DataAnalysisAgent", 
+            "sender": "DataAnalysisAgent",
             "content": "I'll analyze this data for you.",
             "tool_calls": [
                 {
                     "function": {
                         "name": "load_dataset",
-                        "arguments": '{"file_path": "data.csv"}'
+                        "arguments": '{"file_path": "data.csv"}',
                     }
                 },
                 {
                     "function": {
                         "name": "calculate_statistics",
-                        "arguments": '{"columns": ["price", "quantity"], "operation": "mean"}'
+                        "arguments": '{"columns": ["price", "quantity"], "operation": "mean"}',
                     }
-                }
-            ]
-        }
+                },
+            ],
+        },
     ]
 
     pretty_print_messages(messages)

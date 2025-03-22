@@ -1,11 +1,12 @@
 import inspect
 import json
 import logging
-from typing import List
 import sys
 from datetime import datetime
+from typing import List
 
 from util import logger_setup
+
 from .brain import Brain
 from .common import Agent, AgentConfig, ReactEnd, Tool, ToolChoice
 
@@ -26,7 +27,7 @@ class ReactExecutor:
         Helper function to get the tools from the agent.
         Example output:
             ```
-            people_search - Use this tool to search for information about people.                                                                                
+            people_search - Use this tool to search for information about people.
             calculator - Use this tool to perform calculations.
             date - Use this tool to get the current date.
             ```
@@ -34,7 +35,7 @@ class ReactExecutor:
         """
         # check if the tool is a tool and not an Agent
         tools = [tool for tool in agent.functions if isinstance(tool, Tool)]
-        # Create a list that combines the name and description of each tool                                        
+        # Create a list that combines the name and description of each tool
         str_tools = [tool.name + " - " + tool.desc for tool in tools]
         # Join the strings in the list with a newline character.
         return "\n".join(str_tools)
@@ -111,7 +112,9 @@ class ReactExecutor:
         ---
         {self.brain.recall()}
         """
-        response: ReactEnd = self.brain.think(prompt=prompt, agent=current_agent, output_format=ReactEnd)
+        response: ReactEnd = self.brain.think(
+            prompt=prompt, agent=current_agent, output_format=ReactEnd
+        )
         # store the assistant's response in message history
         self.brain.remember("Assistant: " + response.final_answer)
         self.brain.remember("Confidence score: " + str(response.confidence))
@@ -120,7 +123,6 @@ class ReactExecutor:
         print(f"Observation: {response.final_answer}", flush=True)
         print(f"Confidence score: {response.confidence} \n", flush=True)
         return response
-
 
     def __choose_tool(self, agent: Agent) -> Tool:
         """
@@ -135,7 +137,9 @@ class ReactExecutor:
         ---
         {self.brain.recall()}
         """
-        response: ToolChoice = self.brain.think(prompt=prompt, agent=agent, output_format=ToolChoice)
+        response: ToolChoice = self.brain.think(
+            prompt=prompt, agent=agent, output_format=ToolChoice
+        )
         message = f""" Assistant: I should use this tool: {response.tool_name}. Reason: {response.reason_of_choice}"""
         # store the assistant's response in message history
         self.brain.remember(message)
@@ -150,8 +154,10 @@ class ReactExecutor:
         if tool is None:
             logger.info("Tool is None")
             return None
-        
-        print(f"\nExecuting Tool: {tool.name} ___________________________\n", flush=True)
+
+        print(
+            f"\nExecuting Tool: {tool.name} ___________________________\n", flush=True
+        )
         prompt = f"""To Answer the following request as best you can: {self.request}.
         Determine the inputs to send to the tool: {tool.name}
         Given that the function signature of the tool function is: {inspect.signature(tool.func)}.
@@ -167,12 +173,12 @@ class ReactExecutor:
         response = {}
         # some function do not have any parameters
         if len(parameters) > 0:
-            prompt +=  f"""RESPONSE FORMAT:
+            prompt += f"""RESPONSE FORMAT:
                         {{
                             {', '.join([f'"{param}": <function parameter>' for param in parameters])}
                         }}"""
             prompt += "\nIMPORTANT: Your entire response must be only a valid JSON object with no additional text, explanations, or formatting before or after. Do not include markdown code blocks, quotation marks around the JSON, or any other text."
-            # llm will return a string of the form: {"operation": "add", "a": 1, "b": 2} 
+            # llm will return a string of the form: {"operation": "add", "a": 1, "b": 2}
             response = self.brain.think(prompt=prompt, agent=agent)
             self.brain.remember("Assistant: " + response)
 
@@ -182,13 +188,11 @@ class ReactExecutor:
             except json.JSONDecodeError:
                 logger.error("Invalid JSON response from LLM")
                 return
-            
+
         tool_result = tool.func(**response)
         print(f"Tool params: {response}", flush=True)
         print(f"Tool result: {tool_result}", flush=True)
         self.brain.remember(f"Assistant: {f'Tool Result: {tool_result}'}")
-
-
 
     def execute(self, query_input: str) -> str:
         """
@@ -203,7 +207,10 @@ class ReactExecutor:
         total_interactions = 0
         agent = self.base_agent
         while True:
-            print(f"\n\n============================================================== Iteration no: {total_interactions+1} ==============================================================\n\n", flush=True)
+            print(
+                f"\n\n============================================================== Iteration no: {total_interactions+1} ==============================================================\n\n",
+                flush=True,
+            )
             total_interactions += 1
             if self.config.max_interactions <= total_interactions:
                 logger.info("Max interactions reached. Exiting...")
@@ -221,4 +228,3 @@ class ReactExecutor:
             if observation.stop:  # True if the context is enough to answer the request
                 logger.info(f"Final Answer: {observation.final_answer}")
                 return observation.final_answer
-            

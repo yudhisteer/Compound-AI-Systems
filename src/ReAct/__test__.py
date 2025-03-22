@@ -1,6 +1,7 @@
+import inspect
+
 from .common import Agent, Tool
 from .tools import calculator_tool, date_tool, people_search_tool
-import inspect
 
 
 def __get_tools(agent: Agent) -> str:
@@ -24,7 +25,6 @@ def __get_tools(agent: Agent) -> str:
     return "\n".join(str_tools)
 
 
-
 main_agent = Agent(
     name="MainAgent",
     instructions="You are a helpful assistant that can answer questions and help with tasks.",
@@ -36,8 +36,6 @@ main_agent = Agent(
 def calculate_area(length, width, units="meters"):
     """Calculate the area of a rectangle."""
     return f"The area is {length * width} square {units}"
-
-
 
 
 if __name__ == "__main__":
@@ -59,16 +57,17 @@ if __name__ == "__main__":
 
     # Check which parameters are required (don't have default values)
     required_params = [
-        name for name, param in signature.parameters.items() 
+        name
+        for name, param in signature.parameters.items()
         if param.default is param.empty
     ]
     print(f"Required parameters: {required_params}")  # Output: ['length', 'width']
 
     # Check parameter details individually
     for name, param in signature.parameters.items():
-        print(f"{name}: default={param.default if param.default is not param.empty else 'REQUIRED'}")
-
-
+        print(
+            f"{name}: default={param.default if param.default is not param.empty else 'REQUIRED'}"
+        )
 
     print("\n================================================")
     prompt = f"""To Answer the following request as best you can:.
@@ -78,8 +77,8 @@ if __name__ == "__main__":
     CONTEXT HISTORY:
     ---
     """
-    parameters = inspect.signature(calculate_area).parameters    
-    prompt +=  f"""RESPONSE FORMAT:
+    parameters = inspect.signature(calculate_area).parameters
+    prompt += f"""RESPONSE FORMAT:
                 {{
                     {', '.join([f'"{param}": <function parameter>' for param in parameters])}
                 }}"""
@@ -93,6 +92,7 @@ if __name__ == "__main__":
     # }
     print("\n================================================")
     import json
+
     response = """{
     "length": 10,
     "width": 5,
@@ -101,4 +101,3 @@ if __name__ == "__main__":
     response = json.loads(response)
     print(response)
     print(type(response))
-

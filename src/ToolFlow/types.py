@@ -1,4 +1,4 @@
-from typing import List, Callable, Union, Optional
+from typing import Callable, List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -16,6 +16,7 @@ class TaskResponse(BaseModel):
         agent (Agent): The agent instance, if applicable.
         context_variables (dict): A dictionary of context variables.
     """
+
     messages: List = []
     agent: Optional[Agent] = None
     context_variables: dict = {}

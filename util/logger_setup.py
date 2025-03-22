@@ -1,5 +1,6 @@
 import logging
 import sys
+
 import colorlog
 
 # Create and configure the handler
@@ -20,4 +21,4 @@ handler.setFormatter(
 root_logger = logging.getLogger()
 root_logger.addHandler(handler)
 root_logger.setLevel(logging.INFO)
-root_logger.flush = sys.stdout.flush 
+root_logger.flush = sys.stdout.flush
