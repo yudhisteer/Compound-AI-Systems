@@ -1,0 +1,138 @@
+flowchart TD
+    start((Start))
+    triage[Triage Agent]
+    check_intent{Determine user intent}
+    ask_clarify[Ask clarifying question]
+    intent_detected{Intent clear?}
+    lost_baggage[Lost Baggage Agent]
+    flight_mod[Flight Modification Agent]
+    flight_cancel[Flight Cancel Agent]
+    flight_change[Flight Change Agent]
+    
+    subgraph Lost Baggage Workflow
+        initiate_search[Initiate baggage search]
+        baggage_found{Baggage found?}
+        found_yes[Record found status]
+        found_no[Record not found status]
+        deliver_baggage[Arrange baggage delivery to customer address]
+        confirm_delivery[Confirm delivery details with customer]
+        escalate_human_lb[Escalate to human]
+        check_questions_lb{Has more questions?}
+        case_resolved_lb[Case resolved]
+    end
+    
+    subgraph Flight Modification Workflow
+        mod_intent{Determine sub-intent: Cancel or Change?}
+        ask_mod_clarify[Ask clarifying question]
+        mod_intent_clear{Sub-intent clear?}
+    end
+    
+    subgraph Flight Cancellation Workflow
+        confirm_flight[Confirm flight #1919, 5/21/2024]
+        flight_match{Flight matches?}
+        escalate_human_fc[Escalate to human]
+        ask_preference[Ask refund or credits]
+        preference_chosen{Preference chosen?}
+        refund[Refund]
+        credits[Credits]
+        initiate_refund[Initiate refund]
+        check_refund_status[Check refund initiation]
+        inform_refund[Inform refund processed in 3-5 days]
+        initiate_credits[Initiate flight credits]
+        check_credits_status[Check credits initiation]
+        inform_credits[Inform credits available in 15 mins]
+        check_questions_fc{Has more questions?}
+        case_resolved_fc[Case resolved]
+    end
+    
+    subgraph Flight Change Workflow
+        verify_details[Verify flight details and change reason]
+        call_valid[Call valid_to_change_flight]
+        valid_change{Valid to change?}
+        invalid_notice[Inform cannot change flight]
+        suggest_earlier[Suggest flight one day earlier]
+        check_availability[Check seat availability]
+        seats_available{Seats available?}
+        offer_alts[Offer alternative flights]
+        advise_checkback[Advise to check back later]
+        calc_fare[Calculate fare differences]
+        inform_fare[Inform fare differences or charges]
+        confirm_change[Confirm change with customer]
+        call_change[Call change_flight]
+        check_change_status[Check flight change status]
+        check_questions_fch{Has more questions?}
+        case_resolved_fch[Case resolved]
+    end
+    
+    end_workflow((End))
+
+    start --> triage
+    triage --> check_intent
+    check_intent -->|Unclear| ask_clarify
+    ask_clarify --> intent_detected
+    intent_detected -->|No| check_intent
+    intent_detected -->|Yes| check_intent
+    check_intent -->|Lost Baggage| lost_baggage
+    check_intent -->|Flight Modification| flight_mod
+    
+    lost_baggage --> initiate_search
+    initiate_search --> baggage_found
+    baggage_found -->|Yes| found_yes
+    baggage_found -->|No| found_no
+    found_yes --> deliver_baggage
+    found_no --> escalate_human_lb
+    deliver_baggage --> confirm_delivery
+    confirm_delivery --> check_questions_lb
+    escalate_human_lb --> check_questions_lb
+    check_questions_lb -->|No| case_resolved_lb
+    check_questions_lb -->|Yes| triage
+    case_resolved_lb --> end_workflow
+    
+    flight_mod --> mod_intent
+    mod_intent -->|Unclear| ask_mod_clarify
+    ask_mod_clarify --> mod_intent_clear
+    mod_intent_clear -->|No| mod_intent
+    mod_intent_clear -->|Yes| mod_intent
+    mod_intent -->|Cancel| flight_cancel
+    mod_intent -->|Change| flight_change
+    
+    flight_cancel --> confirm_flight
+    confirm_flight --> flight_match
+    flight_match -->|Yes| ask_preference
+    flight_match -->|No| escalate_human_fc
+    ask_preference --> preference_chosen
+    preference_chosen -->|Refund| refund
+    preference_chosen -->|Credits| credits
+    refund --> initiate_refund
+    initiate_refund --> check_refund_status
+    check_refund_status --> inform_refund
+    inform_refund --> check_questions_fc
+    credits --> initiate_credits
+    initiate_credits --> check_credits_status
+    check_credits_status --> inform_credits
+    inform_credits --> check_questions_fc
+    escalate_human_fc --> check_questions_fc
+    check_questions_fc -->|No| case_resolved_fc
+    check_questions_fc -->|Yes| triage
+    case_resolved_fc --> end_workflow
+    
+    flight_change --> verify_details
+    verify_details --> call_valid
+    call_valid --> valid_change
+    valid_change -->|No| invalid_notice
+    invalid_notice --> check_questions_fch
+    valid_change -->|Yes| suggest_earlier
+    suggest_earlier --> check_availability
+    check_availability --> seats_available
+    seats_available -->|Yes| calc_fare
+    seats_available -->|No| offer_alts
+    offer_alts --> advise_checkback
+    advise_checkback --> check_questions_fch
+    calc_fare --> inform_fare
+    inform_fare --> confirm_change
+    confirm_change --> call_change
+    call_change --> check_change_status
+    check_change_status --> check_questions_fch
+    check_questions_fch -->|No| case_resolved_fch
+    check_questions_fch -->|Yes| triage
+    case_resolved_fch --> end_workflow
