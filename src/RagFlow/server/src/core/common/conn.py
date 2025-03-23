@@ -1,13 +1,13 @@
 import redis
 
-from core.common.config import REDIS_URL, REDIS_HOST
+from core.common.config import REDIS_HOST, REDIS_URL
 
 _redis_conn = None
 _pg_conn = None
 
 
 def get_redis_instance():
-    """ Static access method. """
+    """Static access method."""
     global _redis_conn
 
     if _redis_conn is None:
