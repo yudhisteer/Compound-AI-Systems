@@ -66,7 +66,9 @@ def function_to_json(func: Callable) -> dict:
                 "type": "object",
                 "properties": parameters,
                 "required": required,
+                "additionalProperties": False
             },
+            "strict": True
         },
     }
 
@@ -152,24 +154,11 @@ if __name__ == "__main__":
     #         "radius": {
     #           "type": "number"
     #         }
-    #       },
-    #         "radius": {
-    #           "type": "number"
-    #         }
-    #         "radius": {
-    #           "type": "number"
-    #         "radius": {
-    #         "radius": {
-    #           "type": "number"
-    #         }
-    #       },
-    #       "required": [
-    #         "shape",
-    #         "length"
-    #       ]
-    #      }
-    #         }
+    #       ],
+    #       "additionalProperties": False
     #     }
+    #   }
+    # }
 
     # Simple message
     debug_print("Starting application")

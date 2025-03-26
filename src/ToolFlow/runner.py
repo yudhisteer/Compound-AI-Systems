@@ -29,16 +29,36 @@ class AppRunner:
             llm_params = self.__create_inference_request(
                 active_agent, history, variables
             )
-            response = self.client.chat.completions.create(**llm_params)
-            message: ChatCompletionMessage = response.choices[0].message
-            debug_print("Response from OpenAI:", str(response))
-            message.sender = active_agent.name
-            history_msg = json.loads(message.model_dump_json())
-            history.append(history_msg)
-            loop_count += 1
-            if not message.tool_calls:
-                debug_print("No tool calls found in the response")
+            # response = self.client.chat.completions.create(**llm_params)
+            # message: ChatCompletionMessage = response.choices[0].message
+
+            # Check if the agent has a response_format
+            if active_agent.response_format:
+                print("-----------------Using response_format-----------------")
+                llm_params["response_format"] = active_agent.response_format
+                response = self.client.beta.chat.completions.parse(**llm_params)
+                message = response.choices[0].message.parsed
+                # Convert the parsed response to a format compatible with history
+                history_msg = {
+                    "content": str(message),  # Use the string representation
+                    "sender": active_agent.name,
+                    "role": "assistant"
+                }
+                history.append(history_msg)
+                # For parsed responses, we always break since they don't use tool_calls
                 break
+            else:
+                print("-----------------Using create-----------------")
+                response = self.client.chat.completions.create(**llm_params)
+                message: ChatCompletionMessage = response.choices[0].message
+                # debug_print("Response from OpenAI:", str(response))
+                history_msg = json.loads(message.model_dump_json())
+                history_msg["sender"] = active_agent.name
+                history.append(history_msg)
+                loop_count += 1
+                if not message.tool_calls:
+                    debug_print("No tool calls found in the response")
+                    break
             debug_print(message.tool_calls)
             response = self.tool_handler.handle_tool_calls(
                 message.tool_calls,
@@ -64,7 +84,7 @@ class AppRunner:
         instructions = agent.get_instructions(context_variables)
         messages = [{"role": "system", "content": instructions}] + history
         tools = agent.tools_in_json()
-        debug_print("Getting chat completion for...:", str(messages))
+        # debug_print("Getting chat completion for...:", str(messages))
 
         params = {
             "model": agent.model,

@@ -1,4 +1,4 @@
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Optional, Type
 
 from openai import OpenAI
 from pydantic import BaseModel, Field
@@ -41,6 +41,7 @@ class Agent(BaseModel):
     functions: List = []
     parallel_tool_calls: bool = True
     tool_choice: str = None
+    response_format: Optional[Type[BaseModel]] = None
 
     def tools_in_json(self):
         return [function_to_json(f) for f in self.functions]
