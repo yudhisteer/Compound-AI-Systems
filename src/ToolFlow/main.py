@@ -30,7 +30,7 @@ if __name__ == "__main__":
         messages.append({"role": "user", "content": query})
         response = runner.run(agent, messages, context_variables)
         messages.extend(response.messages)
-        agent = response.agent
+        agent = response.agent # update the active agent
         pretty_print_messages(response.messages)
 
     print("Finishing the app")
