@@ -4,7 +4,7 @@ from openai import OpenAI
 from .utils import pretty_print_messages, debug_print
 from pydantic import BaseModel
 from typing import Literal, Any
-
+from .runner import TaskResponse
 
 class SupportResponse(BaseModel):
     response: str
@@ -20,6 +20,25 @@ def transfer_to_greeting():
 # Define case resolved function
 def case_resolved():
     return "Case resolved. Goodbye!"
+
+
+def switch_agent_parser(response: TaskResponse, 
+                       pydantic_attribute: str, 
+                       expected_value: Any, 
+                       next_agent: Agent) -> Agent:
+    # Check if the response has a parsed_response (Pydantic object)
+    if response.parsed_response:
+        # get the attribute value from the parsed response
+        attribute_value = getattr(response.parsed_response, pydantic_attribute, None)
+        debug_print(f"[DEBUG] Attribute Value: {attribute_value}, Expected: {expected_value}")
+        # if the attribute value is the expected value, return the next agent
+        if attribute_value == expected_value:
+            debug_print(f"[DEBUG] Parsed Response: {attribute_value}")
+            debug_print(f"[DEBUG] Switching to {next_agent.name}")
+            return next_agent
+        return response.agent  # Return current agent if condition not met
+    else:
+        return response.agent  # Return current agent if no parsed_response
 
 # Define agents
 greeting_agent = Agent(
@@ -37,13 +56,7 @@ support_agent = Agent(
 )
 
 
-def handle_action(pydantic_attribute: Any, case: Any, current_agent: Agent, next_agent: Agent = greeting_agent) -> Agent:
-    if pydantic_attribute == case:
-        print(f"[DEBUG] Parsed Response: {pydantic_attribute}")
-        print(f"[DEBUG] Returning to {next_agent.name}")
-        return next_agent # return the next agent
-    print(f"[DEBUG] Returning to {current_agent.name}")
-    return current_agent  # Return current agent if condition not met
+    
 
 if __name__ == "__main__":
     print("Starting the app")
@@ -57,18 +70,14 @@ if __name__ == "__main__":
         response = runner.run(agent, messages, context_variables)
         messages.extend(response.messages)
 
-        # check if the response is a pydantic object
-        if response.parsed_response:
-            agent = handle_action(
-                pydantic_attribute=response.parsed_response.action, 
-                case="resolve_case", 
-                current_agent=response.agent,
-                next_agent=greeting_agent,
-            )
-        # if the response is not a pydantic object, return the current agent
-        else:
-            agent = response.agent
-        
+        # Switch agent
+        agent = switch_agent_parser(
+            response=response, 
+            pydantic_attribute="action", 
+            expected_value="resolve_case", 
+            next_agent=greeting_agent,
+        )
+                
         debug_print(f"Agent: {agent.name}")
         pretty_print_messages(response.messages)
         
