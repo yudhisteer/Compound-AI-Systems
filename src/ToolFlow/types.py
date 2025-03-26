@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 from pydantic import BaseModel
 
@@ -20,6 +20,7 @@ class TaskResponse(BaseModel):
     messages: List = []
     agent: Optional[Agent] = None
     context_variables: dict = {}
+    parsed_response: Optional[Any] = None
 
 
 class FuncResult(BaseModel):

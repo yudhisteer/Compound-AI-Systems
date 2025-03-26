@@ -24,6 +24,8 @@ class AppRunner:
         context_variables = copy.deepcopy(variables)
         history = copy.deepcopy(messages)
         init_len = len(messages)
+        parsed_response = None
+
         while loop_count < max_interactions:
             print(f"Active agent: {active_agent.name}")
             llm_params = self.__create_inference_request(
@@ -38,6 +40,7 @@ class AppRunner:
                 llm_params["response_format"] = active_agent.response_format
                 response = self.client.beta.chat.completions.parse(**llm_params)
                 message = response.choices[0].message.parsed
+                parsed_response = message
                 # Convert the parsed response to a format compatible with history
                 history_msg = {
                     "content": str(message),  # Use the string representation
@@ -74,6 +77,7 @@ class AppRunner:
             messages=history[init_len:],
             agent=active_agent,
             context_variables=context_variables,
+            parsed_response=parsed_response
         )
 
     @staticmethod
