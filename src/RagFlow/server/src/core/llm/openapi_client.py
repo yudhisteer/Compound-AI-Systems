@@ -14,12 +14,6 @@ class LLMClientInterface:
     This interface defines a standard contract that all LLM clients must fulfill,
     allowing for:
 
-    1. Standardized interaction with different LLM providers
-    2. Dependency inversion - higher-level modules depend on abstraction
-    3. Interchangeable implementations (OpenAI, Anthropic, local models, etc.)
-    4. Improved testability through mock implementations
-    5. Future-proofing as the LLM landscape evolves
-
     Any concrete LLM client must implement the predict() method for text generation
     and the get_embeddings() method for vector embeddings.
     """
