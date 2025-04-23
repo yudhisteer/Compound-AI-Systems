@@ -9,7 +9,10 @@
       }
     },
     "python.envFile": "${workspaceFolder}/.env",
-    "python.analysis.extraPaths": ["${workspaceFolder}"],
+    "python.analysis.extraPaths": [
+      "${workspaceFolder}",
+      "./src/MCP/02_account_server"
+    ],
     "code-runner.runInTerminal": true,
     "code-runner.saveFileBeforeRun": true,
     "terminal.integrated.profiles.windows": {
