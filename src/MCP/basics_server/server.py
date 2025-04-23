@@ -81,7 +81,7 @@ if __name__ == "__main__":
     cd src/mcp-servers/basics_server
     mcp dev server.py
     """
-    transport = "sse"
+    transport = "stdio"  # Changed default to stdio since that's what the client expects
     if transport == "stdio":
         print("Running server with stdio transport")
         mcp.run(transport="stdio")
