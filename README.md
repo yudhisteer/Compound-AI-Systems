@@ -167,4 +167,5 @@ Based on the provided data, here is the sales analysis table rearranged in ascen
 9. https://github.com/daveebbelaar/ai-cookbook
 10. https://www.youtube.com/watch?v=yj-wSRJwrrc&ab_channel=AIEngineer
 11. https://www.youtube.com/watch?v=zt1zCwLrSPg&t=2622s&ab_channel=DaveEbbelaar
+12. https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-llm-agents
 
