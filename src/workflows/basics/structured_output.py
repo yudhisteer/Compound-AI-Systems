@@ -4,7 +4,7 @@ import sys
 from openai import OpenAI
 from pydantic import BaseModel
 
-from util.utils import get_chat_completion_parse
+from src.workflows.utils import get_chat_completion_parse
 
 
 class Person(BaseModel):
