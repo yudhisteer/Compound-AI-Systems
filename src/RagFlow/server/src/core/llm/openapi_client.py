@@ -2,9 +2,9 @@ from typing import List
 
 import requests
 
-from core.common.config import OPENAI_BACKOFF, OPENAI_MAX_RETRIES
-from core.common.http_retry import retry_with_exponential_backoff
-from core.llm.utils import OpenAIError, OpenAIRateLimitError
+from ..common.config import OPENAI_BACKOFF, OPENAI_MAX_RETRIES
+from ..common.http_retry import retry_with_exponential_backoff
+from .utils import OpenAIError, OpenAIRateLimitError
 
 
 class LLMClientInterface:
@@ -73,13 +73,13 @@ class OpenAPIClient(LLMClientInterface):
 
         return response.json()
 
-    def get_embeddings(self, input_text: str) -> list[list]:
+    def get_embeddings(self, input_param: List[str]) -> list[list]:
         """
         Get the embedding of a text.
         Ref: https://platform.openai.com/docs/api-reference/embeddings
         """
         data = {
-            "input": input_text,
+            "input": input_param,
             "model": "text-embedding-ada-002",
         }
         endpoint = "/embeddings"
