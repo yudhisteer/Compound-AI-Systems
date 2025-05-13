@@ -153,7 +153,7 @@ async def main():
     """Main entry point for the client."""
     client = MCPOpenAIClient()
     try:
-        await client.connect_to_server("src/mcp-servers/openai-client/server.py")
+        await client.connect_to_server("src/MCP/openai-client/server.py")
 
         query = "What is the total cost of a shopping cart with a subtotal of $1300, with 6% tax and a 12% discount?"
         print(f"\nQuery: {query}")

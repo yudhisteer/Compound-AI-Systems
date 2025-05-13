@@ -3,13 +3,11 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from src.shared.utils import debug_print
 
-
-
 async def main():
     # Define server parameters
     server_params = StdioServerParameters(
         command="python",  # The command to run your server
-        args=["src/mcp-servers/basics_server/server.py"],  # Arguments to the command
+        args=["src/MCP/basics_server/server.py"],  # Arguments to the command
     )
 
     # Connect to the server

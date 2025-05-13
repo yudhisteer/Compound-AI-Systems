@@ -9,7 +9,8 @@ Make sure:
 3. The server is listening on port 8050.
 
 To run the server:
-cd src/mcp-servers/basics_server
+cd src/MCP/basics_server
+change transport = "sse" in server.py
 uv run server.py
 """
 

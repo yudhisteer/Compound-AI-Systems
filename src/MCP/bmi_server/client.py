@@ -5,8 +5,12 @@ from mcp.types import ListToolsResult
 from openai import OpenAI
 import os
 import json
-from src.shared.utils import debug_print
 from mcp import types
+
+from src.shared.utils import debug_print
+
+
+
 
 def prompt_to_identify_tools(tools: ListToolsResult, query: str) -> str:
     """
@@ -87,7 +91,7 @@ def llm_client(message:str) -> str:
 # This tells the client how to start and connect to the BMI server
 server_params = StdioServerParameters(
     command="python",  # Use Python interpreter
-    args=["src/servers/bmi_server/server.py"]  # Path to the BMI server script
+    args=["src/MCP/bmi_server/server.py"]  # Path to the BMI server script
 )
 
 async def main(query: str) -> None:

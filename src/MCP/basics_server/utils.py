@@ -22,7 +22,7 @@ server_params = StdioServerParameters(
     command="python",
     # Arguments to pass to the command
     # Here we're telling Python to run our server.py file
-    args=["src/servers/hello_world_server/server.py"]
+    args=["src/MCP/basics_server/server.py"]
 )
 print("Server parameters:", server_params)
 

@@ -4,7 +4,7 @@ from typing import Optional, Type
 from openai import OpenAI
 from pydantic import BaseModel
 
-from util import logger_setup
+from shared import logger_setup
 
 from .common import Agent, AgentConfig
 

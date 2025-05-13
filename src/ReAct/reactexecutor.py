@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from typing import List
 
-from util import logger_setup
+from shared import logger_setup
 
 from .brain import Brain
 from .common import Agent, AgentConfig, ReactEnd, Tool, ToolChoice
